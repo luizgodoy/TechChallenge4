@@ -1,10 +1,10 @@
-IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'TechChallenge2')
+IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'TechChallenge4')
 BEGIN
-    CREATE DATABASE TechChallenge2;
+    CREATE DATABASE TechChallenge4;
 END
 GO
 
-USE TechChallenge2;
+USE TechChallenge4;
 GO
 
 IF NOT EXISTS (SELECT name FROM sys.server_principals WHERE name = 'tech_challenge')

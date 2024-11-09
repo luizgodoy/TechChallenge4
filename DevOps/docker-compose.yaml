@@ -3,7 +3,7 @@ services:
     container_name: sqlserver
     image: mcr.microsoft.com/mssql/server:2022-latest
     ports:
-      - "1533:1433"
+      - "1433:1433"
     environment:
       SA_PASSWORD: "@tech@2024!"
       ACCEPT_EULA: "Y"
@@ -47,9 +47,10 @@ services:
       - "18081:8081"
     depends_on:
       - sqlserver
+      - rabbitmq
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__SqlConnection: "Server=localhost,1533;Database=TechChallenge4;User ID=tech_challenge;Password=tech@2024;Trusted_Connection=False; TrustServerCertificate=True;"
+      ConnectionStrings__SqlConnection: "Server=sqlserver,1433;Database=TechChallenge4;User ID=tech_challenge;Password=tech@2024;Trusted_Connection=False; TrustServerCertificate=true;"
     networks:
       - techchallenge-network
   
@@ -60,9 +61,10 @@ services:
       dockerfile: devops/application/Dockerfile
     depends_on: 
       - sqlserver
+      - rabbitmq
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__SqlConnection: "Server=localhost,1533;Database=TechChallenge4;User ID=tech_challenge;Password=tech@2024;Trusted_Connection=False; TrustServerCertificate=True;"
+      ConnectionStrings__SqlConnection: "Server=sqlserver,1433;Database=TechChallenge4;User ID=tech_challenge;Password=tech@2024;Trusted_Connection=False; TrustServerCertificate=true;"
     networks:
       - techchallenge-network
 

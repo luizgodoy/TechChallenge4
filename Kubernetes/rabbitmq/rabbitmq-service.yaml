@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-service
+spec:
+  selector:
+    app: rabbitmq
+  ports:
+    - protocol: TCP
+      name: tcp
+      port: 5672
+      targetPort: 5672
+      nodePort: 30001
+    - protocol: TCP
+      name: tcp2
+      port: 15672 # Porta de servico dentro do cluster
+      targetPort: 15672 # Porta do pod
+      nodePort: 30002 # Porta exposta no no     
+  type: NodePort

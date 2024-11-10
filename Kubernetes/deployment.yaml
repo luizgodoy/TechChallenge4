@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: techchallenge4-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: techchallenge4
+  template:
+    metadata:
+      labels:
+        app: techchallenge4
+    spec:
+      containers:
+      - name: techchallenge-webapi-container
+        image: luizgodoy/techchallenge_webapi:fase4
+        ports:
+        - containerPort: 8080
+      - name: techchallenge-apllication-container
+        image: luizgodoy/techchallenge_application:fase4

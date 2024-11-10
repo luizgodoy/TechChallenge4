@@ -2,7 +2,6 @@ using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using MassTransit;
-using MassTransit.Transports.Fabric;
 using Prometheus;
 using TechChallenge.API.AutoMapper;
 using TechChallenge.API.Configurations;
@@ -11,27 +10,30 @@ using TechChallenge.Data.Context;
 using TechChallenge.Data.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
- 
-// Add services to the container.
 
+// Configuração do banco de dados
 var connectionString = builder.Configuration.GetConnectionString("SqlConnection");
-
 builder.Services.AddDbContext<techchallengeDbContext>(options =>
     options.UseSqlServer(connectionString));
 
+// Configuração do AutoMapper
 builder.Services.AddAutoMapper(typeof(MapperProfile), typeof(MapperProfile));
 
+// Configuração de dependências personalizadas
 builder.Services.ResolveDependencies();
 builder.Services.AddControllers();
 
+// Configuração do MassTransit com RabbitMQ
+var rabbitMqSettings = builder.Configuration.GetSection("RabbitMq");
 builder.Services.AddMassTransit(x =>
 {
     x.UsingRabbitMq((context, cfg) =>
     {
-        cfg.Host("localhost", "/", h =>
+        // Host do RabbitMQ definido no appsettings.json
+        cfg.Host(rabbitMqSettings["Host"], "/", h =>
         {
-            h.Username("guest");  
-            h.Password("guest"); 
+            h.Username(rabbitMqSettings["Username"]);
+            h.Password(rabbitMqSettings["Password"]);
         });
         
         cfg.Message<AddContactMessage>(p => 
@@ -77,7 +79,6 @@ builder.Services.AddControllers().AddFluentValidation(v =>
 {
     v.RegisterValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 });
-
 
 var urls = builder.Configuration.GetSection("AllowOrigins").Get<string[]>();
 var app = builder.Build();

@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapi
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webapi
+  template:
+    metadata:
+      labels:
+        app: webapi
+    spec:
+      containers:
+      - name: webapi
+        image: andjsilva/techchallenge-webapi:latest
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: webapi-config
+        resources:
+          requests:
+            memory: "256Mi" 
+            cpu: "250m"  
+          limits:
+            memory: "512Mi" 
+            cpu: "500m"     

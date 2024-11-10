@@ -27,23 +27,30 @@ namespace TechChallenge.Application
             Host.CreateDefaultBuilder(args)
                 .ConfigureServices((hostContext, services) =>
                 {
+                    // Configuração de AutoMapper
                     services.AddAutoMapper(typeof(MapperProfile), typeof(MapperProfile));
 
+                    // Injeção de dependências para serviços e repositórios
                     services.AddScoped<IContactService, ContactService>();
                     services.AddScoped<IContactRepository, ContactRepository>();
 
+                    // Configuração do contexto de banco de dados
                     var connectionString = hostContext.Configuration.GetConnectionString("SqlConnection");
                     services.AddDbContext<techchallengeDbContext>(options => options.UseSqlServer(connectionString));
+
+                    // Configuração do RabbitMQ com MassTransit
+                    var rabbitMqSettings = hostContext.Configuration.GetSection("RabbitMq");
                     services.AddMassTransit(x =>
                     {
                         x.AddConsumers(Assembly.GetEntryAssembly());
 
                         x.UsingRabbitMq((context, cfg) =>
                         {
-                            cfg.Host("localhost", "/", h =>
+                            // Configurações do RabbitMQ lidas do appsettings.json
+                            cfg.Host(rabbitMqSettings["Host"], "/", h =>
                             {
-                                h.Username("guest");
-                                h.Password("guest");
+                                h.Username(rabbitMqSettings["Username"]);
+                                h.Password(rabbitMqSettings["Password"]);
                             });
 
                             const string exchangeName = "tech.challenge.direct";

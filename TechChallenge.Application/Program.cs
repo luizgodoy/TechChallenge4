@@ -27,71 +27,74 @@ namespace TechChallenge.Application
             Host.CreateDefaultBuilder(args)
                 .ConfigureServices((hostContext, services) =>
                 {
+                    // Configuração de AutoMapper
                     services.AddAutoMapper(typeof(MapperProfile), typeof(MapperProfile));
 
+                    // Injeção de dependências para serviços e repositórios
                     services.AddScoped<IContactService, ContactService>();
                     services.AddScoped<IContactRepository, ContactRepository>();
 
+                    // Configuração do contexto de banco de dados
                     var connectionString = hostContext.Configuration.GetConnectionString("SqlConnection");
                     services.AddDbContext<techchallengeDbContext>(options => options.UseSqlServer(connectionString));
+
+                    // Configuração do RabbitMQ com MassTransit
+                    var rabbitMqSettings = hostContext.Configuration.GetSection("RabbitMq");
                     services.AddMassTransit(x =>
                     {
                         x.AddConsumers(Assembly.GetEntryAssembly());
 
                         x.UsingRabbitMq((context, cfg) =>
                         {
-                            cfg.Host("rabbitmq", "/", h =>
+                            // Configurações do RabbitMQ lidas do appsettings.json
+                            cfg.Host(rabbitMqSettings["Host"], "/", h =>
                             {
-                                h.Username("guest");
-                                h.Password("guest");
+                                h.Username(rabbitMqSettings["Username"]);
+                                h.Password(rabbitMqSettings["Password"]);
                             });
 
+                            // Configuração do exchange e das filas
                             const string exchangeName = "tech.challenge.direct";
-                            
+
+                            // Configuração para o endpoint "add-contact"
                             cfg.ReceiveEndpoint("add-contact", e =>
                             {
                                 e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
                                 e.ConfigureConsumeTopology = false;
-
                                 e.Bind(exchangeName, s =>
                                 { 
                                     s.RoutingKey = "add.contact";
                                     s.ExchangeType = ExchangeType.Direct;
                                     s.Durable = true;
                                 });
-                                
                                 e.ConfigureConsumer<AddContactConsumer>(context);
                             });
-                            
-                        
+
+                            // Configuração para o endpoint "update-contact"
                             cfg.ReceiveEndpoint("update-contact", e =>
                             {
                                 e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
                                 e.ConfigureConsumeTopology = false;
-
                                 e.Bind(exchangeName, s =>
                                 {
                                     s.RoutingKey = "update.contact";
                                     s.ExchangeType = ExchangeType.Direct;
                                     s.Durable = true;
                                 });
-                                
                                 e.ConfigureConsumer<EditContactConsumer>(context);
                             });
-                            
-                 
+
+                            // Configuração para o endpoint "delete-contact"
                             cfg.ReceiveEndpoint("delete-contact", e =>
                             {
                                 e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
                                 e.ConfigureConsumeTopology = false;
-
                                 e.Bind(exchangeName, s =>
                                 {
                                     s.RoutingKey = "delete.contact";
                                     s.ExchangeType = ExchangeType.Direct;
                                     s.Durable = true;
                                 });
-                                
                                 e.ConfigureConsumer<DeleteContactConsumer>(context);
                             });
                         });

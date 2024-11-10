@@ -1,23 +1,4 @@
 services:
-  sqlserver:
-    container_name: sqlserver
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    ports:
-      - "1433:1433"
-    environment:
-      SA_PASSWORD: "@tech@2024!"
-      ACCEPT_EULA: "Y"
-    volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    command: >
-      bash -c "
-      /opt/mssql/bin/sqlservr & sleep 30 && 
-      /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P @tech@2024! -i /docker-entrypoint-initdb.d/init.sql && 
-      wait
-      "
-    networks:
-      - techchallenge-network
-
   prometheus:
     image: prom/prometheus
     volumes:
@@ -46,7 +27,6 @@ services:
       - "18080:8080" # Porta do container para acesso externo 
       - "18081:8081"
     depends_on:
-      - sqlserver
       - rabbitmq
     environment:
       ASPNETCORE_ENVIRONMENT: Development
@@ -60,7 +40,6 @@ services:
       context: ..
       dockerfile: devops/application/Dockerfile
     depends_on: 
-      - sqlserver
       - rabbitmq
     environment:
       ASPNETCORE_ENVIRONMENT: Development

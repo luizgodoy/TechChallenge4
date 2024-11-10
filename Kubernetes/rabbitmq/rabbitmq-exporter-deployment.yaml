@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq-exporter
+  template:
+    metadata:
+      labels:
+        app: rabbitmq-exporter
+    spec:
+      containers:
+      - name: rabbitmq-exporter
+        image: kbudde/rabbitmq-exporter:latest
+        ports:
+        - containerPort: 9419
+        env:
+        - name: RABBIT_URL
+          value: "http://guest:guest@rabbitmq:15672"
+        resources:
+          requests:
+            memory: "128Mi"  
+            cpu: "100m"     
+          limits:
+            memory: "256Mi" 
+            cpu: "200m"     

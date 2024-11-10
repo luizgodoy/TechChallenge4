@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: application
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: application
+  template:
+    metadata:
+      labels:
+        app: application
+    spec:
+      containers:
+      - name: application
+        image: andjsilva/techchallenge-application:latest
+        envFrom: 
+        - configMapRef:
+            name: application-config
+        resources:
+          requests:
+            memory: "256Mi"  
+            cpu: "250m"      
+          limits:
+            memory: "512Mi"  
+            cpu: "500m"  

@@ -1,0 +1,8 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - rabbitmq-deployment.yaml
+  - rabbitmq-exporter-deployment.yaml
+  - rabbitmq-exporter-service.yaml
+  - rabbitmq-service.yaml

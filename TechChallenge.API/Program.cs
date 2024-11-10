@@ -35,28 +35,55 @@ builder.Services.AddMassTransit(x =>
             h.Username(rabbitMqSettings["Username"]);
             h.Password(rabbitMqSettings["Password"]);
         });
+        
+        cfg.Message<AddContactMessage>(p => 
+        {
+            p.SetEntityName("tech.challenge.direct");
+        });
 
-        // Configuração das mensagens sem uso de ExchangeName
-        cfg.Publish<AddContactMessage>(p => p.ExchangeType = "direct");
-        cfg.Publish<EditContactMessage>(p => p.ExchangeType = "direct");
-        cfg.Publish<DeleteContactMessage>(p => p.ExchangeType = "direct");
+        cfg.Publish<AddContactMessage>(p =>
+        {
+            p.ExchangeType = "direct";
+        });
+
+        cfg.Message<EditContactMessage>(p => 
+        {
+            p.SetEntityName("tech.challenge.direct");
+        });
+
+        cfg.Publish<EditContactMessage>(p =>
+        {
+            p.ExchangeType = "direct";
+        });
+
+        cfg.Message<DeleteContactMessage>(p => 
+        {
+            p.SetEntityName("tech.challenge.direct");
+        });
+
+        cfg.Publish<DeleteContactMessage>(p =>
+        {
+            p.ExchangeType = "direct";
+        });
+
+
+        
     });
 });
 
-// Configuração do Swagger/OpenAPI
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Configuração do FluentValidation para validações
 builder.Services.AddControllers().AddFluentValidation(v =>
 {
     v.RegisterValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 });
 
-// Configuração de CORS
 var urls = builder.Configuration.GetSection("AllowOrigins").Get<string[]>();
 var app = builder.Build();
 
+// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -64,25 +91,32 @@ if (app.Environment.IsDevelopment())
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "TechChallenge 4 V1");
     });
+
 }
 
-// Executa as migrações do banco de dados automaticamente ao iniciar
+
+//Executa as migrações do banco de dados
 app.MigrateDatabase();
 
-// Configuração de CORS com origens permitidas
 app.UseCors(x => x
     .WithOrigins(urls)
     .AllowAnyMethod()
     .AllowAnyHeader()
     .AllowCredentials());
 
-// Configuração de métricas para Prometheus
+// Configura o endpoint de métricas do Prometheus
 app.UseMetricServer();
+
+// Configura a coleta de métricas padrão de ASP.NET Core
 app.UseHttpMetrics();
+
+// Garante que o endpoint de métricas está mapeado
 app.MapMetrics();
 
 app.UseHttpsRedirection();
+
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();

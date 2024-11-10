@@ -30,7 +30,7 @@ services:
       - rabbitmq
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__SqlConnection: "Server=sqlserver,1433;Database=TechChallenge4;User ID=tech_challenge;Password=tech@2024;Trusted_Connection=False; TrustServerCertificate=true;"
+      ConnectionStrings__SqlConnection: "Data Source=PC-DELL-01,49172\\SQLEXPRESS01;Initial Catalog=TechChallenge4;Integrated Security=False;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;User ID=tech_challenge;Password=tech@2024;"
     networks:
       - techchallenge-network
   
@@ -43,7 +43,7 @@ services:
       - rabbitmq
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__SqlConnection: "Server=sqlserver,1433;Database=TechChallenge4;User ID=tech_challenge;Password=tech@2024;Trusted_Connection=False; TrustServerCertificate=true;"
+      ConnectionStrings__SqlConnection: "Data Source=PC-DELL-01,49172\\SQLEXPRESS01;Initial Catalog=TechChallenge4;Integrated Security=False;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;User ID=tech_challenge;Password=tech@2024;"
     networks:
       - techchallenge-network
 

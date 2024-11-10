@@ -53,48 +53,52 @@ namespace TechChallenge.Application
                                 h.Password(rabbitMqSettings["Password"]);
                             });
 
-                            // Configuração do exchange e das filas
                             const string exchangeName = "tech.challenge.direct";
-
-                            // Configuração para o endpoint "add-contact"
+                            
                             cfg.ReceiveEndpoint("add-contact", e =>
                             {
                                 e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
                                 e.ConfigureConsumeTopology = false;
+
                                 e.Bind(exchangeName, s =>
                                 { 
                                     s.RoutingKey = "add.contact";
                                     s.ExchangeType = ExchangeType.Direct;
                                     s.Durable = true;
                                 });
+                                
                                 e.ConfigureConsumer<AddContactConsumer>(context);
                             });
-
-                            // Configuração para o endpoint "update-contact"
+                            
+                        
                             cfg.ReceiveEndpoint("update-contact", e =>
                             {
                                 e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
                                 e.ConfigureConsumeTopology = false;
+
                                 e.Bind(exchangeName, s =>
                                 {
                                     s.RoutingKey = "update.contact";
                                     s.ExchangeType = ExchangeType.Direct;
                                     s.Durable = true;
                                 });
+                                
                                 e.ConfigureConsumer<EditContactConsumer>(context);
                             });
-
-                            // Configuração para o endpoint "delete-contact"
+                            
+                 
                             cfg.ReceiveEndpoint("delete-contact", e =>
                             {
                                 e.UseMessageRetry(r => r.Interval(3, TimeSpan.FromSeconds(5)));
                                 e.ConfigureConsumeTopology = false;
+
                                 e.Bind(exchangeName, s =>
                                 {
                                     s.RoutingKey = "delete.contact";
                                     s.ExchangeType = ExchangeType.Direct;
                                     s.Durable = true;
                                 });
+                                
                                 e.ConfigureConsumer<DeleteContactConsumer>(context);
                             });
                         });

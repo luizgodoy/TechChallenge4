@@ -7,5 +7,7 @@ spec:
     app: webapi
   ports:
     - protocol: TCP
-      port: 18080
+      port: 8080
       targetPort: 8080
+      nodePort: 30000
+  type: NodePort

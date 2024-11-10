@@ -4,7 +4,7 @@ metadata:
   name: application-config
 data:
   ASPNETCORE_ENVIRONMENT: "Development"
-  ConnectionStrings__SqlConnection: "Server=sqlserver,1433;Database=TechChallenge4;User ID=tech_challenge;Password=tech@2024;Trusted_Connection=False; TrustServerCertificate=true;"
-  RabbitMq__Host: "localhost"
+  ConnectionStrings__SqlConnection: "Server=host.docker.internal,1433;Database=TechChallenge4;User ID=sa;Password=tech@2024!;Trusted_Connection=False; TrustServerCertificate=true;"
+  RabbitMq__Host: "rabbitmq-service"
   RabbitMq__Username: "guest"
   RabbitMq__Password: "guest"

@@ -1,23 +1,4 @@
 services:
-  sqlserver:
-    container_name: sqlserver
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    ports:
-      - "1433:1433"
-    environment:
-      SA_PASSWORD: "@tech@2024!"
-      ACCEPT_EULA: "Y"
-    volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    command: >
-      bash -c "
-      /opt/mssql/bin/sqlservr & sleep 30 && 
-      /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P @tech@2024! -i /docker-entrypoint-initdb.d/init.sql && 
-      wait
-      "
-    networks:
-      - techchallenge-network
-
   prometheus:
     image: prom/prometheus
     volumes:
@@ -46,11 +27,10 @@ services:
       - "18080:8080" # Porta do container para acesso externo 
       - "18081:8081"
     depends_on:
-      - sqlserver
       - rabbitmq
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__SqlConnection: "Server=sqlserver,1433;Database=TechChallenge4;User ID=tech_challenge;Password=tech@2024;Trusted_Connection=False; TrustServerCertificate=true;"
+      ConnectionStrings__SqlConnection: "Data Source=PC-DELL-01,49172\\SQLEXPRESS01;Initial Catalog=TechChallenge4;Integrated Security=False;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;User ID=tech_challenge;Password=tech@2024;"
     networks:
       - techchallenge-network
   
@@ -60,11 +40,10 @@ services:
       context: ..
       dockerfile: devops/application/Dockerfile
     depends_on: 
-      - sqlserver
       - rabbitmq
     environment:
       ASPNETCORE_ENVIRONMENT: Development
-      ConnectionStrings__SqlConnection: "Server=sqlserver,1433;Database=TechChallenge4;User ID=tech_challenge;Password=tech@2024;Trusted_Connection=False; TrustServerCertificate=true;"
+      ConnectionStrings__SqlConnection: "Data Source=PC-DELL-01,49172\\SQLEXPRESS01;Initial Catalog=TechChallenge4;Integrated Security=False;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;User ID=tech_challenge;Password=tech@2024;"
     networks:
       - techchallenge-network
 

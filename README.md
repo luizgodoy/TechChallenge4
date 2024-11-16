@@ -1,5 +1,16 @@
 # TechChallenge4
 
+Comandos kubernetes para rodar projeto (executar na pasta ./TechChallenge4/Kubernetes):
+
+```
+kubectl apply -k application
+kubectl apply -k grafana
+kubectl apply -k prometheus
+kubectl apply -k rabbitmq
+kubectl apply -k volume
+kubectl apply -k webapi
+```
+
 Grupo: 70
 Turma: 4NETT
 Curso: Arquitetura de Sistemas .NET com Azure

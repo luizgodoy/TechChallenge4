@@ -19,11 +19,11 @@ spec:
         - containerPort: 9419
         env:
         - name: RABBIT_URL
-          value: "http://guest:guest@rabbitmq:15672"
+          value: "http://guest:guest@rabbitmq-service:5672"
         resources:
           requests:
-            memory: "128Mi"  
-            cpu: "100m"     
+            memory: "256Mi"  
+            cpu: "500m"     
           limits:
             memory: "256Mi" 
-            cpu: "200m"     
+            cpu: "500m"     

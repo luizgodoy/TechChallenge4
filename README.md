@@ -9,6 +9,7 @@ kubectl apply -k prometheus
 kubectl apply -k rabbitmq
 kubectl apply -k volume
 kubectl apply -k webapi
+kubectl apply -k frontend
 ```
 
 Grupo: 70

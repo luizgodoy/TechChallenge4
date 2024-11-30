@@ -99,7 +99,7 @@ if (app.Environment.IsDevelopment())
 app.MigrateDatabase();
 
 app.UseCors(x => x
-    .AllowAnyOrigin()
+    .WithOrigins(urls)
     .AllowAnyMethod()
     .AllowAnyHeader()
     .AllowCredentials());

@@ -15,4 +15,4 @@ data:
 
       - job_name: 'rabbitmq'
         static_configs:
-          - targets: ['rabbitmq-exporter-service:30419']
+          - targets: ['rabbitmq-exporter-service:9419']

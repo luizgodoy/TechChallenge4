@@ -23,7 +23,15 @@ spec:
         volumeMounts:
         - mountPath: /var/opt/mssql
           name: sqlserver-storage
+        resources:
+          requests:
+            memory: "2Gi"   
+            cpu: "500m"     
+          limits:
+            memory: "4Gi"   
+            cpu: "500m"     
       volumes:
       - name: sqlserver-storage
         persistentVolumeClaim:
           claimName: database-pvc
+         

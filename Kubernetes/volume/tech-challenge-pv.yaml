@@ -9,4 +9,5 @@ spec:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   hostPath:
-    path: C:\Users\ricar\Documents\FIAP\TC-Fase4\TechChallenge4
+    path: ./data
+    type: DirectoryOrCreate

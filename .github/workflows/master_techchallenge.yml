@@ -1,0 +1,210 @@
+name: Build, test, and deploy to k8s.
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '8.x'
+          include-prerelease: true
+
+      - name: Build API with dotnet
+        run: dotnet build --configuration Release
+
+  unit-test:
+    runs-on: windows-latest
+    needs: build
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '8.x'
+          include-prerelease: true
+
+      - name: Test API with dotnet
+        if: ${{ 1 != 1 }} 
+        run: dotnet test ./TechChallenge.Domain.UnitTest/TechChallenge.Domain.UnitTest.csproj --configuration Release
+
+  integration-test:
+    runs-on: windows-latest
+    needs: build
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '8.x'
+          include-prerelease: true
+
+      - name: Pull SQL Server Image
+        run: docker pull mcr.microsoft.com/windows/servercore:ltsc2022
+
+      - name: Run SQL Server Container
+        run: docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourStrongPassword123!" -p 1433:1433 -d --name sql-server mcr.microsoft.com/windows/servercore:ltsc2022
+        shell: pwsh
+
+      - name: Test API with dotnet
+        if: ${{ 1 != 1 }} 
+        run: dotnet test ./TechChallenge.Domain.IntegrationTest/TechChallenge.Domain.IntegrationTest.csproj --configuration Release
+
+  push-api-to-dockerhub:
+    runs-on: ubuntu-latest
+    needs: [unit-test, integration-test]
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Build and push API image
+        run: |
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/api-front-tech-challenge:latest -f ./DevOps/webapi/Dockerfile .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/api-front-tech-challenge:latest
+
+  push-front-to-dockerhub:
+    runs-on: ubuntu-latest
+    needs: [unit-test, integration-test]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Build and push FrontEnd image
+        run: |
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/front-tech-challenge:latest -f ./DevOps/frontend/Dockerfile .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/front-tech-challenge:latest
+
+
+  push-application-to-dockerhub:
+      runs-on: ubuntu-latest
+      needs: [unit-test, integration-test]
+
+      steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Build and push Application image
+        run: |
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/application-tech-challenge:latest -f ./DevOps/application/Dockerfile .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/application-tech-challenge:latest
+
+          
+  push-images_to_k8s:
+    runs-on: ubuntu-latest
+    needs: [unit-test, integration-test]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Configure Docker for Insecure Registry
+        run: |
+          echo '{"insecure-registries":["zampieri.sytes.net:5000"]}' | sudo tee /etc/docker/daemon.json
+          sudo systemctl restart docker
+
+      - name: Build and push API Docker image
+        run: |
+          docker build -t zampieri.sytes.net:5000/api-front-tech-challenge:latest -f ./DevOps/webapi/Dockerfile .
+          docker push zampieri.sytes.net:5000/api-front-tech-challenge:latest
+
+      - name: Build and push FrontEnd Docker image
+        run: |
+          docker build -t zampieri.sytes.net:5000/front-tech-challenge:latest -f ./DevOps/frontend/Dockerfile .
+          docker push zampieri.sytes.net:5000/front-tech-challenge:latest
+
+      - name: Build and push Application Docker image
+        run: |
+          docker build -t zampieri.sytes.net:5000/application-tech-challenge:latest -f ./DevOps/application/Dockerfile .
+          docker push zampieri.sytes.net:5000/application-tech-challenge:latest
+
+  deploy-to-k8s:
+    needs: [push-images_to_k8s]
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        env:
+          KUBECONFIG_DATA: ${{ secrets.KUBECONFIG_DATA }}
+        run: |
+          # Decode the kubeconfig data using PowerShell
+          $decodedKubeconfig = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String("${{ env.KUBECONFIG_DATA }}"))
+          if ($decodedKubeconfig) {
+              echo "Kubeconfig decodificado com sucesso:"
+              echo $decodedKubeconfig
+          } else {
+              echo "Falha ao decodificar o kubeconfig."
+              exit 1
+          }
+          $decodedKubeconfig | Out-File -FilePath kubeconfig -Encoding UTF8
+
+          # Set the kubeconfig environment variable
+          $env:KUBECONFIG = ".\kubeconfig"
+
+          # Test kubectl connectivity
+          kubectl cluster-info
+
+      - name: Deploy FrontEnd to k8s
+        shell: powershell
+        run: |
+          $env:KUBECONFIG = "$PWD\kubeconfig"
+          kubectl config use-context docker-desktop
+          kubectl apply -k .\Kubernetes\frontend
+
+      - name: Deploy API to k8s
+        shell: powershell
+        run: |
+          $env:KUBECONFIG = "$PWD\kubeconfig"
+          kubectl config use-context docker-desktop
+          kubectl apply -k ./Kubernetes/webapi
+
+      - name: Deploy Another Service to k8s
+        shell: powershell
+        run: |
+          $env:KUBECONFIG = "$PWD\kubeconfig"
+          kubectl config use-context docker-desktop
+          kubectl apply -k ./Kubernetes/application
